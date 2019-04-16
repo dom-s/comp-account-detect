@@ -119,7 +119,7 @@ def clf_training(folds, perc_comps, feature_matrix):
         X, y = get_xy(feature_matrix.format(perc_comp))
 
         print
-        logging.info('SVM with {} fold cross validation with {} % of tweets compromised'.format(folds, perc_comp))
+        logging.info('SVM with {} fold cross validation with {} % of tweets compromised'.format(folds, perc_comp*100))
         classify_svm_cross_validation(X, y, folds)
 
 
@@ -131,7 +131,7 @@ def clf_ablation(folds, perc_comps, feature_matrix, sample_sizes):
         for i, feature in enumerate(indx_dict):
             indxs = [i+j*4 for j in range(num_samples)]
             logging.info(
-                    'SVM with {} fold cross validation with {} % comp, feature:{}'.format(folds, perc_comp, feature))
+                    'SVM with {} fold cross validation with {} % comp, feature:{}'.format(folds, perc_comp*100, feature))
             classify_svm_cross_validation(X[:,indxs], y, folds)
 
 
