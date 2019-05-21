@@ -2,6 +2,8 @@
 
 Paper: (https://arxiv.org/abs/1804.07247)
 
+Python: 2.7
+
 ### Run Code
 
 To run a short demo of the source code please execute the following command in your unix shell:
