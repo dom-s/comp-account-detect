@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
         logging.info('starting pool...')
 
-        with poolcontext(processes=None) as pool:
+        with poolcontext(processes=config['processes']) as pool:
             results = pool.map(sample_kl_for_user, user_tweets)
 
 

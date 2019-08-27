@@ -3,8 +3,10 @@ tweet_file: 'data/tweets.tsv.gz'              # input file of raw tweets
 synth_dataset: 'data/comp-accounts_{}.tsv.gz' # output file for synthetic dataset
 samples_file: 'data/kl-samples_{}.json'       # output file containing account samples
 feature_matrix: 'data/feature_matrix_{}.npy'  # output file containing features for classifier
-percs_compromised: [0.05, 0.1, 0.25, 0.5]     # percentages of compromised tweets within account
+percs_compromised: ['0.05', '0.1',
+                    '0.25', '0.5', 'RND']     # percentages of compromised tweets within account
 prob_compromised: 0.5                         # probability that an account is compromised (0.5 = balanced)
 sample_size: 50                               # amount of samples per account
 sub_sample_sizes: [5, 10, 25, 50]             # sub-sampling sizes (cannot be larger than 'sample_size'
 cv_folds: 10                                  # number of folds for cross-validation
+processes: 16                                 # number of simultaneous processes

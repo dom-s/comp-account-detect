@@ -7,17 +7,24 @@ from yaml import load
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
 
 
-def generate_compromised_dataset(twitter_dataset, dataset_out, user_lst='data/user_lst.tsv', perc_compromised=0.5, prob_compromised=0.5):
+def generate_compromised_dataset(twitter_dataset, dataset_out, user_lst='data/user_lst.tsv', perc_compromised=0.5, prob_compromised=0.5,
+                                 randomize_perc_compromised=False):
     '''
     Use a regular tweet dataset to generate artificially compromised user accounts.
     :param twitter_dataset: The original dataset
     :param dataset_out: The output of the dataset containing compromised and non-compromised accounts
     :param user_lst: Output a list of user names that are contained in the dataset
     :param perc_compromised: The percentage of tweets that are compromised within a user account
-    :param prob_compromised: The probability of an account being compromised, e.g. 0.5 = roughly half of the accounts will
-    be comrpomised.
-    :return:
+    :param prob_compromised: The probability of an account being compromised, e.g. 0.5 = roughly half of the accounts
+    will be comrpomised.
+    :param randomize_perc_compromised: If true, the parameter perc_compromised will be chosen at random, for each
+    account. The random sample is between the minimum of 5% and the maximum of parameter perc_compromised.
     '''
+
+    if randomize_perc_compromised and perc_compromised < 0.05:
+        raise ValueError('parameter \'perc_compromised\' needs to be above 0.05 for randomization.')
+
+
     users = []
     users.append([])
 
@@ -66,7 +73,10 @@ def generate_compromised_dataset(twitter_dataset, dataset_out, user_lst='data/us
                         tweets_omitted += 1
             else:
                 number_tweets = len(users[i])
-                number_compromised_tweets = int(number_tweets * perc_compromised)
+                if randomize_perc_compromised:
+                    number_compromised_tweets = int(number_tweets * random.uniform(0.05, perc_compromised))
+                else:
+                    number_compromised_tweets = int(number_tweets * perc_compromised)
                 j = i
                 num_j = 0
                 while j == i or num_j <= number_compromised_tweets:
@@ -103,8 +113,15 @@ def generate_compromised_dataset(twitter_dataset, dataset_out, user_lst='data/us
 if __name__ == '__main__':
     config = load(open('config.yaml'))
 
+    # generate datasets for fixed percentage of compromised tweets within an account
     for perc_comp in config['percs_compromised']:
         f_out = config['synth_dataset'].format(perc_comp)
-        generate_compromised_dataset(config['tweet_file'], f_out,
-                                     perc_compromised=perc_comp, prob_compromised=config['prob_compromised'])
+        if perc_comp != 'RND':
+            generate_compromised_dataset(config['tweet_file'], f_out, perc_compromised=float(perc_comp),
+                                     prob_compromised=config['prob_compromised'], randomize_perc_compromised=False)
+        else:
+
+            # generate dataset with randomized percentages of compromised tweets within an account
+            generate_compromised_dataset(config['tweet_file'], f_out, perc_compromised=0.5,
+                                     prob_compromised=config['prob_compromised'], randomize_perc_compromised=True)
 

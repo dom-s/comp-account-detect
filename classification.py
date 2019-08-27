@@ -90,18 +90,18 @@ def get_xy(feature_matrix_path):
     return X, y
 
 
-def classify_svm_cross_validation(X, y, folds):
+def classify_svm_cross_validation(X, y, folds, processes):
     scaler = StandardScaler()
     classifier = LinearSVC(dual=False, fit_intercept=False)
 
-    cross_validation(make_pipeline(scaler, classifier), X, y, folds, n_jobs=-1)
+    cross_validation(make_pipeline(scaler, classifier), X, y, folds, processes)
 
 
-def cross_validation(classifer, X, y, folds, n_jobs):
+def cross_validation(classifer, X, y, folds, processes):
     scoring = {'Accuracy': 'accuracy', 'F1': 'f1',
               'Precision': 'precision', 'Recall': 'recall'}
 
-    scores = cross_validate(classifer, X, y, scoring=scoring, cv=folds, n_jobs=n_jobs)
+    scores = cross_validate(classifer, X, y, scoring=scoring, cv=folds, n_jobs=processes)
 
     for name, score in scores.items():
         logging.info("%s: %0.2f (+- %0.2f)" % (name, score.mean(), score.std() * 2))
@@ -114,16 +114,16 @@ def generate_feature_matrix(perc_comps, samples_file, feature_matrix, sample_siz
                                  sample_sizes)
 
 
-def clf_training(folds, perc_comps, feature_matrix):
+def clf_training(folds, perc_comps, feature_matrix, processes):
     for perc_comp in perc_comps:
         X, y = get_xy(feature_matrix.format(perc_comp))
 
         print
-        logging.info('SVM with {} fold cross validation with {} % of tweets compromised'.format(folds, perc_comp*100))
-        classify_svm_cross_validation(X, y, folds)
+        logging.info('SVM with {} fold cross validation with {} of tweets compromised'.format(folds, perc_comp))
+        classify_svm_cross_validation(X, y, folds, processes)
 
 
-def clf_ablation(folds, perc_comps, feature_matrix, sample_sizes):
+def clf_ablation(folds, perc_comps, feature_matrix, sample_sizes, processes):
     num_samples = len(sample_sizes)
     indx_dict = ['avg', 'max', 'min', 'var']
     for perc_comp in perc_comps:
@@ -131,8 +131,8 @@ def clf_ablation(folds, perc_comps, feature_matrix, sample_sizes):
         for i, feature in enumerate(indx_dict):
             indxs = [i+j*4 for j in range(num_samples)]
             logging.info(
-                    'SVM with {} fold cross validation with {} % comp, feature:{}'.format(folds, perc_comp*100, feature))
-            classify_svm_cross_validation(X[:,indxs], y, folds)
+                    'SVM with {} fold cross validation with {}  comp, feature:{}'.format(folds, perc_comp, feature))
+            classify_svm_cross_validation(X[:,indxs], y, folds, processes)
 
 
 if __name__ == '__main__':
@@ -142,13 +142,14 @@ if __name__ == '__main__':
     feature_matrix = config['feature_matrix']
     samples_file = config['samples_file']
     sample_sizes = config['sub_sample_sizes']
+    processes = config['processes']
     num_features = 4
 
     logging.info('Generating feature matrix...')
     generate_feature_matrix(perc_comps, samples_file, feature_matrix, sample_sizes)
 
     logging.info('Training classifier...')
-    clf_training(folds, perc_comps, feature_matrix)
+    clf_training(folds, perc_comps, feature_matrix, processes)
 
     logging.info('Performing feature ablation...')
-    clf_ablation(folds, perc_comps, feature_matrix, sample_sizes)
+    clf_ablation(folds, perc_comps, feature_matrix, sample_sizes, processes)
